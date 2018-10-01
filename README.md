@@ -4,7 +4,7 @@ Mit Bewegungs- &amp; Erschütterungs-Sensor, gekoppelt an eine Sirene.
 
 ToBuy: 4x Erschütterungsschaltmodul KY-002 
        2x Ultraschallabstandssensoren KY-052
-       1x Arduino Uno WiFi(Rev2)
+       1x Arduino Uno WiFi(Rev2) ( vlt. sogar Arduino MKR 1000 WIFI?)
        2x 12V Alarm Sirene
        4x Lochraster-Platinen
        
