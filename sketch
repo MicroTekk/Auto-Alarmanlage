@@ -56,7 +56,7 @@ Serial.println(" cm");
 }
 //Es wird eine weitere IF-Bedingung erstellt: 
  
-if (entfernung <= 5)//Wenn der Wert für die Entfernung unter oder gleich 5cm ist, dann... 
+if (entfernung <= 3)//Wenn der Wert für die Entfernung unter oder gleich 3cm ist, dann... 
 {
 digitalWrite(piezo,HIGH); //...fange an zu piepsen. 
 }
