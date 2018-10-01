@@ -1,3 +1,4 @@
+//Ultraschallsensor basis code
 //Pinbelegung des Sensors am Arduino
 #define trigger 3 // Arduino Pin an HC-SR04 Trig
 #define echo 2    // Arduino Pin an HC-SR04 Echo
