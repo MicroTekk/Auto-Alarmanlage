@@ -1,86 +1,32 @@
 //Ultraschallsensor basis code
-/*
- PretzelBoard-Ultraschall-SN-SR04T - Arduino Board mit WLAN
- Entfernung Messen und auf seriellen Schnittstelle im Sekundentakt in cm ausgeben
- */
- 
-#include <SoftwareSerial.h>
-
-#define trigger 3 // Arduino Pin an HC-SR04 Trig
-#define echo 2    // Arduino Pin an HC-SR04 Echo
-
-SoftwareSerial esp8266(11, 12);
-
+//Arduino Uno + ultraschallsensor hc-sr04
+int trigger=7; //Trigger-Pin des Ultraschallsensors an Pin7 des Arduino-Boards 
+int echo=6; // Echo-Pim des Ultraschallsensors an Pin6 des Arduino-Boards 
+long dauer=0; // Das Wort dauer ist jetzt eine Variable, unter der die Zeit gespeichert wird, die eine Schallwelle bis zur Reflektion und zurück benötigt. Startwert ist hier 0.
+long entfernung=0; // Das Wort „entfernung“ ist jetzt die variable, unter der die berechnete Entfernung gespeichert wird. Info: Anstelle von „int“ steht hier vor den beiden Variablen „long“. Das hat den Vorteil, dass eine größere Zahl gespeichert werden kann. Nachteil: Die Variable benötigt mehr Platz im Speicher.
 void setup()
 {
-  pinMode(trigger, OUTPUT);
-  pinMode(echo, INPUT);
-  digitalWrite(trigger, HIGH); //Signal abschalten
- 
-  // Open serial communications and wait for port to open:
-  Serial.begin(19200);
-  // set the data rate for the SoftwareSerial port
-  esp8266.begin(19200);
- 
-  //sendet ersten befehl für ESP8266-Module antwort
-  esp8266.println("ESPModul Aktiv");
-
-  Serial.write("PretzelBoard Aktiv");
+Serial.begin (9600); //Serielle kommunikation starten, damit man sich später die Werte am serial monitor ansehen kann.
+pinMode(trigger, OUTPUT); // Trigger-Pin ist ein Ausgang
+pinMode(echo, INPUT); // Echo-Pin ist ein Eingang
 }
-
-void loop() 
+void loop()
 {
- int entfernung=getEntfernung();
- int mittelwert= getEntfernungGD();
- 
- Serial.write("Entfernung:");
- Serial.print(entfernung, DEC) ;
- Serial.write(" , Mittelwert (gewichtet): ");
- Serial.print(mittelwert, DEC) ;
- Serial.write(" cm\n");
- 
- delay(1000); //1 Sekunde warten
+digitalWrite(trigger, LOW); //Hier nimmt man die Spannung für kurze Zeit vom Trigger-Pin, damit man später beim senden des Trigger-Signals ein rauschfreies Signal hat.
+delay(5); //Dauer: 5 Millisekunden
+digitalWrite(trigger, HIGH); //Jetzt sendet man eine Ultraschallwelle los.
+delay(10); //Dieser „Ton“ erklingt für 10 Millisekunden.
+digitalWrite(trigger, LOW);//Dann wird der „Ton“ abgeschaltet.
+dauer = pulseIn(echo, HIGH); //Mit dem Befehl „pulseIn“ zählt der Mikrokontroller die Zeit in Mikrosekunden, bis der Schall zum Ultraschallsensor zurückkehrt.
+entfernung = (dauer/2) * 0.03432; //Nun berechnet man die Entfernung in Zentimetern. Man teilt zunächst die Zeit durch zwei (Weil man ja nur eine Strecke berechnen möchte und nicht die Strecke hin- und zurück). Den Wert multipliziert man mit der Schallgeschwindigkeit in der Einheit Zentimeter/Mikrosekunde und erhält dann den Wert in Zentimetern.
+if (entfernung >= 500 || entfernung <= 0) //Wenn die gemessene Entfernung über 500cm oder unter 0cm liegt,…
+{
+Serial.println("Kein Messwert"); //dann soll der serial monitor ausgeben „Kein Messwert“, weil Messwerte in diesen Bereichen falsch oder ungenau sind.
 }
-
-
-// Entfernung in cm über gewöhnlichen Ultraschallsensor mit Echo und Trigger messen
-int getEntfernung()
-{ 
- 
- long entfernung=0;
- long zeit=0;
-
- digitalWrite(trigger, LOW); 
- delayMicroseconds(3);
- noInterrupts();
- digitalWrite(trigger, HIGH); //Trigger Impuls 10 us
- delayMicroseconds(10);
- digitalWrite(trigger, LOW); 
- zeit = pulseIn(echo, HIGH); // Echo-Zeit messen
- interrupts(); 
- 
- zeit = (zeit/2); // Zeit halbieren
- entfernung = zeit / 29.1; // Zeit in Zentimeter umrechnen
- return(entfernung); 
+else //  Ansonsten…
+{
+Serial.print(entfernung); //…soll der Wert der Entfernung an den serial monitor hier ausgegeben werden.
+Serial.println(" cm"); // Hinter dem Wert der Entfernung soll auch am Serial Monitor die Einheit "cm" angegeben werden.
 }
-
-//Entfernung Gleitender Durchschnitt (gewichtet)
-int getEntfernungGD(){ 
-
-int alt=0;
-int mittel;
-int entf;
-int i;
-
- delay(10);
- alt=getEntfernung();
- delay(10);
- for (i=0; i<10; i++)
- {
-   entf=getEntfernung();
-   mittel=(0.8*alt) + (0.2*entf);
-   alt=mittel;
-   delay(10);
- }
- return (mittel);
+delay(1000); //Das delay von einer Sekunde sorgt in ca. jeder neuen Sekunde für einen neuen Messwert.
 }
