@@ -1,23 +1,86 @@
 //Ultraschallsensor basis code
-//Pinbelegung des Sensors am Arduino
+/*
+ PretzelBoard-Ultraschall-SN-SR04T - Arduino Board mit WLAN
+ Entfernung Messen und auf seriellen Schnittstelle im Sekundentakt in cm ausgeben
+ */
+ 
+#include <SoftwareSerial.h>
+
 #define trigger 3 // Arduino Pin an HC-SR04 Trig
 #define echo 2    // Arduino Pin an HC-SR04 Echo
 
+SoftwareSerial esp8266(11, 12);
+
+void setup()
+{
+  pinMode(trigger, OUTPUT);
+  pinMode(echo, INPUT);
+  digitalWrite(trigger, HIGH); //Signal abschalten
+ 
+  // Open serial communications and wait for port to open:
+  Serial.begin(19200);
+  // set the data rate for the SoftwareSerial port
+  esp8266.begin(19200);
+ 
+  //sendet ersten befehl für ESP8266-Module antwort
+  esp8266.println("ESPModul Aktiv");
+
+  Serial.write("PretzelBoard Aktiv");
+}
+
+void loop() 
+{
+ int entfernung=getEntfernung();
+ int mittelwert= getEntfernungGD();
+ 
+ Serial.write("Entfernung:");
+ Serial.print(entfernung, DEC) ;
+ Serial.write(" , Mittelwert (gewichtet): ");
+ Serial.print(mittelwert, DEC) ;
+ Serial.write(" cm\n");
+ 
+ delay(1000); //1 Sekunde warten
+}
+
+
 // Entfernung in cm über gewöhnlichen Ultraschallsensor mit Echo und Trigger messen
 int getEntfernung()
-{
-  long entfernung=0;
-  long zeit=0;
+{ 
+ 
+ long entfernung=0;
+ long zeit=0;
 
-  digitalWrite(trigger, LOW);
-  delayMicroseconds(3);
-  noInterrupts();
-  digitalWrite(trigger, HIGH); //Trigger Impuls 10 us
-  delayMicroseconds(10);
-  digitalWrite(trigger, LOW);
-  zeit = pulseIn(echo, HIGH); // Echo-Zeit messen
-  interrupts();
-  zeit = (zeit/2); // Zeit halbieren
-  entfernung = zeit / 29.1; // Zeit in Zentimeter umrechnen
-  return(entfernung);
+ digitalWrite(trigger, LOW); 
+ delayMicroseconds(3);
+ noInterrupts();
+ digitalWrite(trigger, HIGH); //Trigger Impuls 10 us
+ delayMicroseconds(10);
+ digitalWrite(trigger, LOW); 
+ zeit = pulseIn(echo, HIGH); // Echo-Zeit messen
+ interrupts(); 
+ 
+ zeit = (zeit/2); // Zeit halbieren
+ entfernung = zeit / 29.1; // Zeit in Zentimeter umrechnen
+ return(entfernung); 
+}
+
+//Entfernung Gleitender Durchschnitt (gewichtet)
+int getEntfernungGD(){ 
+
+int alt=0;
+int mittel;
+int entf;
+int i;
+
+ delay(10);
+ alt=getEntfernung();
+ delay(10);
+ for (i=0; i<10; i++)
+ {
+   entf=getEntfernung();
+   mittel=(0.8*alt) + (0.2*entf);
+   alt=mittel;
+   delay(10);
+ }
+ return (mittel);
 }
