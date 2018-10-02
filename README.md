@@ -1,7 +1,10 @@
 # Auto-Alarmanlage <br/>
 ## Changelog <br/>
-### V0.1 [01.10.18]<br/>
+### V0.1 [01.10.18] <br/>
 * Alarm auf Entfernung <br/>
+### V0.1.1 [02.10.18] <br/>
+* Entfernungskalibrierung <br/>
+
 
 To Buy: <br/>
 - Erschütterungsschaltmodul KY-002 4x <br/>
